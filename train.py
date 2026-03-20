@@ -11,7 +11,7 @@ import pickle
 # CONSTANTS
 # ─────────────────────────────────────────
 SYM_COLS = [f'Symptom_{i}' for i in range(1, 18)]
-DATA_PATH = 'DiseaseAndSymptoms.csv'
+DATA_PATH = 'data/DiseaseAndSymptoms.csv'
 
 # ─────────────────────────────────────────
 # FUNCTIONS
