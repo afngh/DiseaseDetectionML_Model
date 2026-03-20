@@ -1,11 +1,49 @@
+import sys
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
-from predict import predict
+import pickle
+
+SYM_COLS = [f'Symptom_{i}' for i in range(1, 18)]
+
+def load_artifacts():
+    model = pickle.load(open(os.path.join(BASE_DIR, 'api/model.pkl'), 'rb'))
+    le    = pickle.load(open(os.path.join(BASE_DIR, 'api/le.pkl'),    'rb'))
+    d_le  = pickle.load(open(os.path.join(BASE_DIR, 'api/d_le.pkl'),  'rb'))
+    return model, le, d_le
+
+def prepare_user_input(raw_input: list):
+    user_input = raw_input[:]
+    while len(user_input) < 17:
+        user_input.append('None')
+    return pd.DataFrame([user_input[:17]], columns=SYM_COLS)
+
+def predict(raw_input: list):
+    model, le, d_le = load_artifacts()
+    user_df = prepare_user_input(raw_input)
+    for col in SYM_COLS:
+        user_df[col] = le.transform(user_df[col])
+    prediction = model.predict(user_df)
+    return d_le.inverse_transform(prediction)[0]
 
 app = FastAPI()
 
-precaution_df = pd.read_csv('data/Disease precaution.csv')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+precaution_df = pd.read_csv(os.path.join(BASE_DIR, 'api/data', 'Disease precaution.csv'))
+#                            ↑ absolute path — works no matter where uvicorn runs from
 
 class SymptomsInput(BaseModel):
     Symptom_1:  str = 'None'
@@ -28,20 +66,13 @@ class SymptomsInput(BaseModel):
 
 @app.post("/predict")
 def predict_disease(input: SymptomsInput):
-    raw_input = list()
-    for symptom in input.dict().values():
-        raw_input.append(symptom)
+    raw_input = list(input.dict().values())
+    disease   = predict(raw_input)
 
-    disease = predict(raw_input)
-
-    # Get precautions
     result = precaution_df[precaution_df['Disease'] == disease][
         ['Precaution_1', 'Precaution_2', 'Precaution_3', 'Precaution_4']
     ].values
 
     precautions = [p for p in result[0] if pd.notna(p)] if len(result) > 0 else []
 
-    return {
-        "disease": disease,
-        "precautions": precautions
-    }
+    return {"disease": disease, "precautions": precautions}

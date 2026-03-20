@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Disease Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="container">
+
+    <header>
+      <div class="logo">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="17" stroke="#00e5ff" stroke-width="1.5"/>
+          <path d="M18 8v10l6 4" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="18" cy="18" r="3" fill="#00e5ff"/>
+        </svg>
+        <span>MediScan</span>
+      </div>
+      <p class="tagline">AI-powered symptom analysis</p>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="card-header">
+          <h1>What are you feeling?</h1>
+          <p>Select up to 17 symptoms. Each symptom can only be used once.</p>
+        </div>
+
+        <div class="symptom-slots" id="symptomSlots"></div>
+
+        <div class="actions">
+          <button class="btn-add" id="addBtn" onclick="addSlot()">
+            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Add Symptom
+          </button>
+          <div class="action-right">
+            <button class="btn-clear" onclick="clearAll()">Clear All</button>
+            <button class="btn-predict" id="predictBtn" onclick="predict()">
+              <span class="btn-text">Analyze</span>
+              <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div class="result-card" id="resultCard">
+        <div class="result-header">
+          <div class="result-icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path d="M14 4C8.477 4 4 8.477 4 14s4.477 10 10 10 10-4.477 10-10S19.523 4 14 4z" stroke="#00e5ff" stroke-width="1.5"/>
+              <path d="M14 9v5l3 3" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="result-label">Predicted Condition</p>
+            <h2 class="result-disease" id="resultDisease">—</h2>
+          </div>
+        </div>
+        <div class="precautions-section">
+          <p class="precautions-label">Recommended Precautions</p>
+          <div class="precautions-list" id="precautionsList"></div>
+        </div>
+        <p class="disclaimer">⚠ This is not a medical diagnosis. Please consult a qualified physician.</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-card" id="errorCard">
+        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3L18 17H2L10 3z" stroke="#ff4d6d" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 9v4M10 14.5v.5" stroke="#ff4d6d" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span id="errorMsg">Something went wrong.</span>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
