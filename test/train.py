@@ -1,31 +1,34 @@
-import numpy as np
+from sentence_transformers import SentenceTransformer, InputExample, losses
+from torch.utils.data import DataLoader
 import pandas as pd
-import json
+import os, warnings
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+warnings.filterwarnings("ignore")
 
-df = pd.read_csv('data/test.csv')
-preq_df = pd.read_csv('data/Disease precaution.csv')
+# ── Load triplets ─────────────────────────────────────────────────────────────
+df = pd.read_csv('data/disease_train.csv')
+print(f"Training on {len(df)} triplets")
 
-# print(df.head())
+train_examples = []
+for _, row in df.iterrows():
+    train_examples.append(InputExample(
+        texts=[row['query'], row['positive'], row['negative']]
+    ))
 
-clean_data = []
+# ── Load base model ───────────────────────────────────────────────────────────
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
-for index in range(len(df)):
-    disease = df.iloc[index]['Disease']
-    symptoms = []
-    precautions = preq_df[preq_df['Disease'] == disease].iloc[0][1:].dropna().tolist()
-    
-    for i in range(1, 11):
-        symptom = df.iloc[index][f'Symptom_{i}']
-        if pd.notna(symptom):
-            symptoms.append(symptom.strip())
+# ── DataLoader + Loss ─────────────────────────────────────────────────────────
+train_loader = DataLoader(train_examples, batch_size=16, shuffle=True)
+loss         = losses.TripletLoss(model=model)
 
-    clean_data.append({
-        'Disease': disease,
-        'Symptoms': symptoms,
-        'Precautions': precautions
-    })
-    
+# ── Train ─────────────────────────────────────────────────────────────────────
+model.fit(
+    train_objectives=[(train_loader, loss)],
+    epochs=30,
+    warmup_steps=50,
+    output_path='disease_model',
+    show_progress_bar=True
+)
 
-# print(df.iloc[0])
-
-print(json.dumps(clean_data, indent=4))
+print("Training complete — model saved to 'disease_model/'")
